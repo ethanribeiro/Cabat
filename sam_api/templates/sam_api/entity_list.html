@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SAM.gov Entities</title>
+    </head>
+    <body>
+        <h1>SAM.gov Entities</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Entity Name</th>
+                    <th>Entity Type</th>
+                    <th>Entity Status</th>
+                    <th>Entity Expiration Date</th>
+                    <th>Entity DUNS</th>
+                    <th>Entity CAGE</th>
+                    <th>Entity NAICS</th>
+                    <th>Entity SBA</th>
+                    <th>Entity Address</th>
+                    <th>Entity City</th>
+                    <th>Entity State</th>
+                    <th>Entity Zip</th>
+                    <th>Entity Country</th>
+                    <th>Entity Phone</th>
+                    <th>Entity Fax</th>
+                    <th>Entity URL</th>
+                    <th>Entity Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entity in entities %}
+                    <tr>
+                        <td>{{ entity }}</td>
+                        <!-- <td>{{ entity.entity_name }}</td> -->
+                        <!-- <td>{{ entity.entity_type }}</td>
+                        <td>{{ entity.entity_status }}</td>
+                        <td>{{ entity.entity_expiration_date }}</td>
+                        <td>{{ entity.entity_duns }}</td>
+                        <td>{{ entity.entity_cage }}</td>
+                        <td>{{ entity.entity_naics }}</td>
+                        <td>{{ entity.entity_sba }}</td>
+                        <td>{{ entity.entity_address }}</td>
+                        <td>{{ entity.entity_city }}</td>
+                        <td>{{ entity.entity_state }}</td>
+                        <td>{{ entity.entity_zip }}</td>
+                        <td>{{ entity.entity_country }}</td>
+                        <td>{{ entity.entity_phone }}</td>
+                        <td>{{ entity.entity_fax }}</td>
+                        <td>{{ entity.entity_url }}</td>
+                        <td>{{ entity.entity_email }}</td> -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>

@@ -7,7 +7,44 @@
     </head>
     <body>
         <h1>SAM.gov Entities</h1>
-        <table>
+        {% if entities %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Notice ID</th>
+                        <th>Title</th>
+                        <th>Solicitation Number</th>
+                        <th>Department</th>
+                        <th>SubTier</th>
+                        <th>Office</th>
+                        <th>Posted Date</th>
+                        <th>Type</th>
+                        <th>NAICS Code</th>
+                        <th>Classification Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entity in entities %}
+                        <tr>
+                            <td>{{ entity.noticeId }}</td>
+                            <td>{{ entity.title }}</td>
+                            <td>{{ entity.solicitationNumber }}</td>
+                            <td>{{ entity.department }}</td>
+                            <td>{{ entity.subTier }}</td>
+                            <td>{{ entity.office }}</td>
+                            <td>{{ entity.postedDate }}</td>
+                            <td>{{ entity.type }}</td>
+                            <td>{{ entity.naicsCode }}</td>
+                            <td>{{ entity.classificationCode }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No entities found.</p>
+        {% endif %}
+        
+        <!-- <table>
             <thead>
                 <tr>
                     <th>Entity Name</th>
@@ -33,8 +70,8 @@
                 {% for entity in entities %}
                     <tr>
                         <td>{{ entity }}</td>
-                        <!-- <td>{{ entity.entity_name }}</td> -->
-                        <!-- <td>{{ entity.entity_type }}</td>
+                        <td>{{ entity.entity_name }}</td>
+                        <td>{{ entity.entity_type }}</td>
                         <td>{{ entity.entity_status }}</td>
                         <td>{{ entity.entity_expiration_date }}</td>
                         <td>{{ entity.entity_duns }}</td>
@@ -49,10 +86,10 @@
                         <td>{{ entity.entity_phone }}</td>
                         <td>{{ entity.entity_fax }}</td>
                         <td>{{ entity.entity_url }}</td>
-                        <td>{{ entity.entity_email }}</td> -->
+                        <td>{{ entity.entity_email }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
-        </table>
+        </table> -->
     </body>
 </html>

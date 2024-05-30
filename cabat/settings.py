@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import environ
 
-environ.Env()
+env = environ.Env()
 environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,12 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = environ.Env('DJANGO_SECRET_KEY')
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
 
 # Application definition
@@ -87,9 +89,9 @@ DATABASES = {
         'ENGINE': 'djongo',
         'NAME': 'cabat_db',
         'CLIENT': {
-            'host': environ.Env('DATABASE_MONGODB_URI'),
-            'username': environ.Env('DATABASE_MONGODB_USERNAME'),
-            'password': environ.Env('DATABASE_MONGODB_PASSWORD'),
+            'host': env('DATABASE_MONGODB_URI'),
+            'username': env('DATABASE_MONGODB_USERNAME'),
+            'password': env('DATABASE_MONGODB_PASSWORD'),
             # 'authSource': 'admin',
             # 'authMechanism': 'SCRAM-SHA-1',
         }

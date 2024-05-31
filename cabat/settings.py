@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sam_api',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -75,7 +76,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'cabat.wsgi.application'
-
+ASGI_APPLICATION = 'cabat.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -87,13 +88,16 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'cabat_db',
+        # 'NAME': 'cabat_db',
+        'NAME': 'Cabat',
+        'ENFORCE_SCHEMA': False,
         'CLIENT': {
             'host': env('DATABASE_MONGODB_URI'),
+            'port': 27017,
             'username': env('DATABASE_MONGODB_USERNAME'),
             'password': env('DATABASE_MONGODB_PASSWORD'),
-            # 'authSource': 'admin',
-            # 'authMechanism': 'SCRAM-SHA-1',
+            'authSource': 'admin',
+            'authMechanism': 'SCRAM-SHA-1',
         }
     }
 }

@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+# from mongoengine import connect
+import mongoengine
 import environ
+import os
 
 env = environ.Env()
 environ.Env.read_env()
@@ -62,7 +65,7 @@ ROOT_URLCONF = 'cabat.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,26 +84,51 @@ ASGI_APPLICATION = 'cabat.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# =============================================================================
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': env('DATABASE_NAME'), # 'Cabat', 'cabat_db',
+#         'ENFORCE_SCHEMA': False,
+#         'CLIENT': {
+#             'host': env('DATABASE_MONGODB_URI'),
+#             'port': 27017,
+#             'username': env('DATABASE_MONGODB_USERNAME'),
+#             'password': env('DATABASE_MONGODB_PASSWORD'),
+#             'authSource': 'admin',
+#             'authMechanism': 'SCRAM-SHA-1',
+#         }
+#     }
+# }
+
+# -----------------------------------------------------------------------------
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# -----------------------------------------------------------------------------
+
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
-        'ENGINE': 'djongo',
-        # 'NAME': 'cabat_db',
-        'NAME': 'Cabat',
-        'ENFORCE_SCHEMA': False,
-        'CLIENT': {
-            'host': env('DATABASE_MONGODB_URI'),
-            'port': 27017,
-            'username': env('DATABASE_MONGODB_USERNAME'),
-            'password': env('DATABASE_MONGODB_PASSWORD'),
-            'authSource': 'admin',
-            'authMechanism': 'SCRAM-SHA-1',
-        }
+        'ENGINE': 'django.db.backends.dummy',
     }
 }
+
+mongoengine.connect(
+    db=env('DATABASE_NAME'),
+    host=env('DATABASE_MONGODB_URI'),
+    username=env('DATABASE_MONGODB_USERNAME'),
+    password=env('DATABASE_MONGODB_PASSWORD'),
+    authentication_source='admin',
+)
+
+# =============================================================================
+
 
 
 # Password validation
@@ -143,3 +171,18 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [('127.0.0.1', 6379)],
+#         },
+#     },
+# }

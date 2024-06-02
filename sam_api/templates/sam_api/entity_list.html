@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -14,8 +14,9 @@
                 font-size: 2em;
                 color: #000;
             }
-        </style>
-        <script>
+        </style> -->
+        <!---------------------------------------------------------------------------------------->
+        <!-- <script>
             function fetchData() {
                 document.getElementById("loading").style.display = "block";
                 fetch("/sam_api/fetch_opportunities/")
@@ -54,12 +55,16 @@
                     tbody.appendChild(tr);
                 });
             };
-        </script>
-    </head>
+        </script> -->
+        <!---------------------------------------------------------------------------------------->
+    <!-- </head>
     <body>
-        <h1>SAM.gov Entities</h1>
-        <button onclick="fetchData()">Fetch Opportunities</button>
-        <div id="loading">Loading...</div>
+        <h1>SAM.gov Entities</h1> -->
+        <!---------------------------------------------------------------------------------------->
+        <!-- <button onclick="fetchData()">Fetch Opportunities</button> -->
+        <!---------------------------------------------------------------------------------------->
+        <!-- <button id="fetchOpportunitiesBtn">Fetch Opportunities</button>
+        <div id="loading" class="loading">Loading...</div>
         <table>
             <thead>
                 <tr>
@@ -75,7 +80,115 @@
                     <th>Classification Code</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                {% for entity in entities %}
+                    <tr>
+                        <td>{{ entity.notice_id }}</td>
+                        <td>{{ entity.title }}</td>
+                        <td>{{ entity.solicitation_number }}</td>
+                        <td>{{ entity.department }}</td>
+                        <td>{{ entity.sub_tier }}</td>
+                        <td>{{ entity.office }}</td>
+                        <td>{{ entity.posted_date }}</td>
+                        <td>{{ entity.opportunity_type }}</td>
+                        <td>{{ entity.naics_code }}</td>
+                        <td>{{ entity.classification_code }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
         </table>
+        <script>
+            document.getElementById('fetchOpportunitiesBtn').addEventListener('click', function() {
+                document.getElementById('loading').style.display = 'block';
+                fetch('{% url "fetch_opportunities" %}')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            location.reload();
+                        } else {
+                            alert('Failed to fetch opportunities');
+                        }
+                    })
+                    .finally(() => {
+                        document.getElementById('loading').style.display = 'none';
+                    }
+                );
+            });
+
+            const ws = new WebSocket('ws://' + window.location.host + '/ws/entities/');
+
+            ws.onmessage = function(event) {
+                const entities = JSON.parse(event.data);
+                const tbody = document.querySelector('tbody');
+                tbody.innerHTML = '';
+                entities.forEach(entity => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${entity.notice_id}</td>
+                        <td>${entity.title}</td>
+                        <td>${entity.solicitation_number}</td>
+                        <td>${entity.department}</td>
+                        <td>${entity.sub_tier}</td>
+                        <td>${entity.office}</td>
+                        <td>${entity.posted_date}</td>
+                        <td>${entity.opportunity_type}</td>
+                        <td>${entity.naics_code}</td>
+                        <td>${entity.classification_code}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            };
+        </script>
     </body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Opportunities</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <!-- <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script> -->
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const socket = io('ws://' + window.location.host + '/ws/opportunities/');
+            socket.on('message', function(data) {
+                console.log(data);
+                // Handle real-time updates here
+                location.reload();
+            });
+
+            document.getElementById('fetch-opportunities-btn').addEventListener('click', function() {
+                fetch('/sam_api/fetch_opportunities/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ api_key: '{{ api_key }}' })
+                }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Opportunities</h1>
+    <button id="fetch-opportunities-btn">Fetch Opportunities</button>
+    <ul>
+        {% for entity in entities %}
+            <li>{{ entity.notice_id }}</li>
+            <li>{{ entity.title }}</li>
+            <li>{{ entity.solicitation_number }}</li>
+            <li>{{ entity.department }}</li>
+            <li>{{ entity.sub_tier }}</li>
+            <li>{{ entity.office }}</li>
+            <li>{{ entity.posted_date }}</li>
+            <li>{{ entity.opportunity_type }}</li>
+            <li>{{ entity.naics_code }}</li>
+            <li>{{ entity.classification_code }}</li>
+        {% endfor %}
+    </ul>
+</body>
 </html>

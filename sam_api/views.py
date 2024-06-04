@@ -7,12 +7,14 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 import requests
 import environ
+import os
+from pathlib import Path
 # import time
 
 # Create your views here.
-
+BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
-environ.Env.read_env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # ====================================================================================================
 
@@ -269,71 +271,149 @@ def fetch_opportunities(api_key):
     url = "https://api.sam.gov/opportunities/v2/search"
     start_date = (datetime.now() - timedelta(days=30)).strftime("%m/%d/%Y")
     end_date = datetime.now().strftime("%m/%d/%Y")
+    all_opportunities = []
     params = {
         'api_key': api_key,
         'postedFrom': start_date,
         'postedTo': end_date,
-        'limit': 1,  # Fetch only one opportunity for now
+        'limit': 10,  # Fetch only one opportunity for now
     }
 
+    # try:
+    #     response = requests.get(url, params=params)
+    #     response.raise_for_status()
+    #     data = response.json()
+    #     opportunities = data.get("opportunitiesData", [])
+    #     return opportunities
+    # except requests.exceptions.RequestException as e:
+    #     print(f"An error occurred while making the request: {e}")
+    #     print(f"Response content: {response.content}")
+    #     return []
+
     try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
-        opportunities = data.get("opportunitiesData", [])
-        return opportunities
+        while True: 
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            opportunities = data.get("opportunitiesData", [])
+            if not opportunities:
+                break
+            all_opportunities.extend(opportunities)
+            params['page'] = data.get('next')
+            if not params['page']:
+                break
+        return all_opportunities
     except requests.exceptions.RequestException as e:
         print(f"An error occurred while making the request: {e}")
         print(f"Response content: {response.content}")
         return []
 
+def parse_date(date_string):
+    for fmt in ("%m/%d/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(date_string, fmt)
+        except ValueError:
+            pass
+    return None
+
+# def save_opportunities_to_db(opportunities):
+#     for opp in opportunities:
+#         Opportunity(
+#             notice_id=opp['noticeId'],
+#             title=opp.get("title"),
+#             solicitation_number=opp.get("solicitationNumber"),
+#             department=opp.get("department"),
+#             sub_tier=opp.get("subTier"),
+#             office=opp.get("office"),
+#             posted_date=datetime.strptime(opp.get("postedDate", ""), "%m/%d/%Y") if opp.get("postedDate") else None,
+#             opportunity_type=opp.get("type"),
+#             base_type=opp.get("baseType"),
+#             archive_type=opp.get("archiveType"),
+#             archive_date=datetime.strptime(opp.get("archiveDate", ""), "%m/%d/%Y") if opp.get("archiveDate") else None,
+#             naics_code=opp.get("naicsCode"),
+#             classification_code=opp.get("classificationCode"),
+#             active=opp.get("active"),
+#             award_date=datetime.strptime(opp.get("award", {}).get("date", ""), "%m/%d/%Y") if opp.get("award", {}).get("date") else None,
+#             award_number=opp.get("award", {}).get("number"),
+#             award_amount=opp.get("award", {}).get("amount"),
+#             awardee_name=opp.get("award", {}).get("awardee", {}).get("name"),
+#             awardee_street_address=opp.get("award", {}).get("awardee", {}).get("location", {}).get("streetAddress"),
+#             awardee_city=opp.get("award", {}).get("awardee", {}).get("location", {}).get("city", {}).get("name"),
+#             awardee_state=opp.get("award", {}).get("awardee", {}).get("location", {}).get("state", {}).get("code"),
+#             awardee_zip=opp.get("award", {}).get("awardee", {}).get("location", {}).get("zip"),
+#             awardee_country=opp.get("award", {}).get("awardee", {}).get("location", {}).get("country", {}).get("code"),
+#             awardee_ueiSAM=opp.get("award", {}).get("awardee", {}).get("ueiSAM"),
+#             point_of_contact_email=opp.get("pointOfContact", [{}])[0].get("email"),
+#             point_of_contact_phone=opp.get("pointOfContact", [{}])[0].get("phone"),
+#             point_of_contact_name=opp.get("pointOfContact", [{}])[0].get("fullName"),
+#             description=opp.get("description"),
+#             organization_type=opp.get("organizationType"),
+#             office_zipcode=opp.get("officeAddress", {}).get("zipcode"),
+#             office_city=opp.get("officeAddress", {}).get("city"),
+#             office_state=opp.get("officeAddress", {}).get("state"),
+#             office_country_code=opp.get("officeAddress", {}).get("countryCode"),
+#             place_of_performance_street_address=opp.get("placeOfPerformance", {}).get("streetAddress"),
+#             place_of_performance_city=opp.get("placeOfPerformance", {}).get("city", {}).get("name"),
+#             place_of_performance_state=opp.get("placeOfPerformance", {}).get("state", {}).get("code"),
+#             place_of_performance_zip=opp.get("placeOfPerformance", {}).get("zip"),
+#             place_of_performance_country=opp.get("placeOfPerformance", {}).get("country", {}).get("code"),
+#             ui_link=opp.get("uiLink"),
+#             additional_info_link=opp.get("additionalInfoLink"),
+#         ).save()
+
 def save_opportunities_to_db(opportunities):
     for opp in opportunities:
-        Opportunity(
-            notice_id=opp['noticeId'],
-            title=opp.get("title"),
-            solicitation_number=opp.get("solicitationNumber"),
-            department=opp.get("department"),
-            sub_tier=opp.get("subTier"),
-            office=opp.get("office"),
-            posted_date=datetime.strptime(opp.get("postedDate", ""), "%m/%d/%Y") if opp.get("postedDate") else None,
-            opportunity_type=opp.get("type"),
-            base_type=opp.get("baseType"),
-            archive_type=opp.get("archiveType"),
-            archive_date=datetime.strptime(opp.get("archiveDate", ""), "%m/%d/%Y") if opp.get("archiveDate") else None,
-            naics_code=opp.get("naicsCode"),
-            classification_code=opp.get("classificationCode"),
-            active=opp.get("active"),
-            award_date=datetime.strptime(opp.get("award", {}).get("date", ""), "%m/%d/%Y") if opp.get("award", {}).get("date") else None,
-            award_number=opp.get("award", {}).get("number"),
-            award_amount=opp.get("award", {}).get("amount"),
-            awardee_name=opp.get("award", {}).get("awardee", {}).get("name"),
-            awardee_street_address=opp.get("award", {}).get("awardee", {}).get("location", {}).get("streetAddress"),
-            awardee_city=opp.get("award", {}).get("awardee", {}).get("location", {}).get("city", {}).get("name"),
-            awardee_state=opp.get("award", {}).get("awardee", {}).get("location", {}).get("state", {}).get("code"),
-            awardee_zip=opp.get("award", {}).get("awardee", {}).get("location", {}).get("zip"),
-            awardee_country=opp.get("award", {}).get("awardee", {}).get("location", {}).get("country", {}).get("code"),
-            awardee_ueiSAM=opp.get("award", {}).get("awardee", {}).get("ueiSAM"),
-            point_of_contact_email=opp.get("pointOfContact", [{}])[0].get("email"),
-            point_of_contact_phone=opp.get("pointOfContact", [{}])[0].get("phone"),
-            point_of_contact_name=opp.get("pointOfContact", [{}])[0].get("fullName"),
-            description=opp.get("description"),
-            organization_type=opp.get("organizationType"),
-            office_zipcode=opp.get("officeAddress", {}).get("zipcode"),
-            office_city=opp.get("officeAddress", {}).get("city"),
-            office_state=opp.get("officeAddress", {}).get("state"),
-            office_country_code=opp.get("officeAddress", {}).get("countryCode"),
-            place_of_performance_street_address=opp.get("placeOfPerformance", {}).get("streetAddress"),
-            place_of_performance_city=opp.get("placeOfPerformance", {}).get("city", {}).get("name"),
-            place_of_performance_state=opp.get("placeOfPerformance", {}).get("state", {}).get("code"),
-            place_of_performance_zip=opp.get("placeOfPerformance", {}).get("zip"),
-            place_of_performance_country=opp.get("placeOfPerformance", {}).get("country", {}).get("code"),
-            ui_link=opp.get("uiLink"),
-            additional_info_link=opp.get("additionalInfoLink"),
-        ).save()
+        notice_id = opp['noticeId']
+        if not Opportunity.objects(notice_id=notice_id):
+            award = opp.get("award", {}) or {}
+            awardee_location = award.get("awardee", {}).get("location", {}) or {}
+            point_of_contact = opp.get("pointOfContact", [{}])[0] or {}
+            place_of_performance = opp.get("placeOfPerformance", {}) or {}
+            Opportunity(
+                notice_id=notice_id,
+                title=opp.get("title"),
+                solicitation_number=opp.get("solicitationNumber"),
+                department=opp.get("department"),
+                sub_tier=opp.get("subTier"),
+                office=opp.get("office"),
+                posted_date=parse_date(opp.get("postedDate", "")) if opp.get("postedDate") else None,
+                opportunity_type=opp.get("type"),
+                base_type=opp.get("baseType"),
+                archive_type=opp.get("archiveType"),
+                archive_date=parse_date(opp.get("archiveDate", "")) if opp.get("archiveDate") else None,
+                naics_code=opp.get("naicsCode"),
+                classification_code=opp.get("classificationCode"),
+                active=opp.get("active"),
+                award_date=parse_date(award.get("date", "")) if award.get("date") else None,
+                award_number=award.get("number"),
+                award_amount=award.get("amount"),
+                awardee_name=award.get("awardee", {}).get("name"),
+                awardee_street_address=awardee_location.get("streetAddress"),
+                awardee_city=awardee_location.get("city", {}).get("name"),
+                awardee_state=awardee_location.get("state", {}).get("code"),
+                awardee_zip=awardee_location.get("zip"),
+                awardee_country=awardee_location.get("country", {}).get("code"),
+                awardee_ueiSAM=award.get("awardee", {}).get("ueiSAM"),
+                point_of_contact_email=point_of_contact.get("email"),
+                point_of_contact_phone=point_of_contact.get("phone"),
+                point_of_contact_name=point_of_contact.get("fullName"),
+                description=opp.get("description"),
+                organization_type=opp.get("organizationType"),
+                office_zipcode=opp.get("officeAddress", {}).get("zipcode"),
+                office_city=opp.get("officeAddress", {}).get("city"),
+                office_state=opp.get("officeAddress", {}).get("state"),
+                office_country_code=opp.get("officeAddress", {}).get("countryCode"),
+                place_of_performance_street_address=place_of_performance.get("streetAddress"),
+                place_of_performance_city=place_of_performance.get("city", {}).get("name"),
+                place_of_performance_state=place_of_performance.get("state", {}).get("code"),
+                place_of_performance_zip=place_of_performance.get("zip"),
+                place_of_performance_country=place_of_performance.get("country", {}).get("code"),
+                ui_link=opp.get("uiLink"),
+                additional_info_link=opp.get("additionalInfoLink"),
+            ).save()
 
 # def fetch_opportunities_view(request):
-def fetch_opportunities_view():
+def fetch_opportunities_view(request):
     # api_key = request.POST.get("api_key")
     api_key = env("API_KEY")
     opportunities = fetch_opportunities(api_key)

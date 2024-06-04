@@ -144,51 +144,174 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Opportunities</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
-    <!-- <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script> -->
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const socket = io('ws://' + window.location.host + '/ws/opportunities/');
-            socket.on('message', function(data) {
-                console.log(data);
-                // Handle real-time updates here
-                location.reload();
-            });
-
-            document.getElementById('fetch-opportunities-btn').addEventListener('click', function() {
-                fetch('/sam_api/fetch_opportunities/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({ api_key: '{{ api_key }}' })
-                }).then(response => response.json())
-                .then(data => {
+    <head>
+        <title>Opportunities</title>
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <style>
+            body {
+                padding: 20px;
+                background-color: #f8f9fa;
+            }
+            h1 {
+                margin-bottom: 20px;
+            }
+            table {
+                background-color: #fff;
+            }
+            th, td {
+                vertical-align: middle;
+                text-align: center;
+            }
+            .table thead th {
+                background-color: #007bff;
+                color: #fff;
+            }
+            .table tbody tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+        <!-- <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script> -->
+        <script>
+            document.addEventListener('DOMContentLoaded', (event) => {
+                // const socket = io('ws://' + window.location.host + '/ws/opportunities/');
+                const socket = new WebSocket('ws://' + window.location.host + '/ws/opportunities/');
+                // socket.on('message', function(data) {
+                //     console.log(data);
+                //     // Handle real-time updates here
+                //     location.reload();
+                // });
+                socket.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
                     console.log(data);
+                    // Handle real-time updates here
+                    location.reload();
+                };
+
+                document.getElementById('fetch-opportunities-btn').addEventListener('click', function() {
+                    fetch('/sam_api/fetch_opportunities/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                        body: JSON.stringify({ api_key: '{{ api_key }}' })
+                    }).then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        alert('Opportunities fetched successfully');
+                    }).catch(error => {
+                        console.error('Error fetching opportunities:', error);
+                    });
                 });
             });
-        });
-    </script>
-</head>
-<body>
-    <h1>Opportunities</h1>
-    <button id="fetch-opportunities-btn">Fetch Opportunities</button>
-    <ul>
-        {% for entity in entities %}
-            <li>{{ entity.notice_id }}</li>
-            <li>{{ entity.title }}</li>
-            <li>{{ entity.solicitation_number }}</li>
-            <li>{{ entity.department }}</li>
-            <li>{{ entity.sub_tier }}</li>
-            <li>{{ entity.office }}</li>
-            <li>{{ entity.posted_date }}</li>
-            <li>{{ entity.opportunity_type }}</li>
-            <li>{{ entity.naics_code }}</li>
-            <li>{{ entity.classification_code }}</li>
-        {% endfor %}
-    </ul>
-</body>
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="text-center">Opportunities</h1>
+            <div class="text-center mb-3">
+                <button id="fetch-opportunities-btn" class="btn btn-primary">Fetch Opportunities</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Notice ID</th>
+                            <th>Title</th>
+                            <th>Solicitation Number</th>
+                            <th>Department</th>
+                            <th>SubTier</th>
+                            <th>Office</th>
+                            <th>Posted Date</th>
+                            <th>Opportunity Type</th>
+                            <th>Base Type</th>
+                            <th>Archive Type</th>
+                            <th>Archive Date</th>
+                            <th>NAICS Code</th>
+                            <th>Classification Code</th>
+                            <th>Active</th>
+                            <th>Award Date</th>
+                            <th>Award Number</th>
+                            <th>Award Amount</th>
+                            <th>Awardee Name</th>
+                            <th>Awardee Street Address</th>
+                            <th>Awardee City</th>
+                            <th>Awardee State</th>
+                            <th>Awardee Zip</th>
+                            <th>Awardee Country</th>
+                            <th>Awardee UEI SAM</th>
+                            <th>Point of Contact Email</th>
+                            <th>Point of Contact Phone</th>
+                            <th>Point of Contact Name</th>
+                            <th>Description</th>
+                            <th>Organization Type</th>
+                            <th>Office Zipcode</th>
+                            <th>Office City</th>
+                            <th>Office State</th>
+                            <th>Office Country Code</th>
+                            <th>Place of Performance Street Address</th>
+                            <th>Place of Performance City</th>
+                            <th>Place of Performance State</th>
+                            <th>Place of Performance Zip</th>
+                            <th>Place of Performance Country</th>
+                            <th>UI Link</th>
+                            <th>Additional Info Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entity in entities %}
+                            <tr>
+                                <td>{{ entity.notice_id }}</td>
+                                <td>{{ entity.title }}</td>
+                                <td>{{ entity.solicitation_number }}</td>
+                                <td>{{ entity.department }}</td>
+                                <td>{{ entity.sub_tier }}</td>
+                                <td>{{ entity.office }}</td>
+                                <td>{{ entity.posted_date }}</td>
+                                <td>{{ entity.opportunity_type }}</td>
+                                <td>{{ entity.base_type }}</td>
+                                <td>{{ entity.archive_type }}</td>
+                                <td>{{ entity.archive_date }}</td>
+                                <td>{{ entity.naics_code }}</td>
+                                <td>{{ entity.classification_code }}</td>
+                                <td>{{ entity.active }}</td>
+                                <td>{{ entity.award_date }}</td>
+                                <td>{{ entity.award_number }}</td>
+                                <td>{{ entity.award_amount }}</td>
+                                <td>{{ entity.awardee_name }}</td>
+                                <td>{{ entity.awardee_street_address }}</td>
+                                <td>{{ entity.awardee_city }}</td>
+                                <td>{{ entity.awardee_state }}</td>
+                                <td>{{ entity.awardee_zip }}</td>
+                                <td>{{ entity.awardee_country }}</td>
+                                <td>{{ entity.awardee_ueiSAM }}</td>
+                                <td>{{ entity.point_of_contact_email }}</td>
+                                <td>{{ entity.point_of_contact_phone }}</td>
+                                <td>{{ entity.point_of_contact_name }}</td>
+                                <td>{{ entity.description }}</td>
+                                <td>{{ entity.organization_type }}</td>
+                                <td>{{ entity.office_zipcode }}</td>
+                                <td>{{ entity.office_city }}</td>
+                                <td>{{ entity.office_state }}</td>
+                                <td>{{ entity.office_country_code }}</td>
+                                <td>{{ entity.place_of_performance_street_address }}</td>
+                                <td>{{ entity.place_of_performance_city }}</td>
+                                <td>{{ entity.place_of_performance_state }}</td>
+                                <td>{{ entity.place_of_performance_zip }}</td>
+                                <td>{{ entity.place_of_performance_country }}</td>
+                                <td>{{ entity.ui_link }}</td>
+                                <td>{{ entity.additional_info_link }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Bootstrap JS, Popper.js, and jQuery -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </body>
 </html>
